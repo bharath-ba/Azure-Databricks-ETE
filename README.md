@@ -1,124 +1,90 @@
-# 🌐 AdventureWorks: End-to-End Azure Data Engineering Project
-
-This project demonstrates an enterprise-grade **Data Engineering Pipeline** using Microsoft's Azure ecosystem, built on top of the AdventureWorks dataset. The pipeline covers everything from data ingestion to transformation, warehousing, and final BI reporting.
-
-## 📊 Tools Used
-
-- **Azure Data Factory (ADF)** – Orchestration & automation
-- **Azure Data Lake Storage** – Bronze, Silver, and Gold zones for raw to curated data
-- **Azure Databricks** – Data transformation using notebooks
-- **Azure Synapse Analytics** – Data warehousing using serverless SQL pools
-- **Power BI** – Dashboarding and visualization
+Of course! Here is a `README.md` file created based on the images you provided, following a structure similar to the example.
 
 ---
 
-## 🔧 Architecture Overview
+# End-to-End Data Engineering Project on Azure
 
-![Architecture](images/architecture.png)
+This repository documents an end-to-end data engineering pipeline built on the Azure cloud platform. The project demonstrates a modern data warehousing solution using Azure Databricks and Azure Data Lake Storage Gen2 to process, transform, and serve data for analytics, following the Medallion architecture.
 
----
+## Table of Contents
+- [Architecture Overview](#architecture-overview)
+- [Azure Resources](#azure-resources)
+- [Data Pipeline Implementation](#data-pipeline-implementation)
+  - [1. Storage and Data Lake Setup](#1-storage-and-data-lake-setup)
+  - [2. Bronze Layer: Raw Data Ingestion](#2-bronze-layer-raw-data-ingestion)
+  - [3. Silver Layer: Data Cleansing and Transformation](#3-silver-layer-data-cleansing-and-transformation)
+  - [4. Gold Layer: Business-Ready Data](#4-gold-layer-business-ready-data)
+- [Pipeline Orchestration](#pipeline-orchestration)
+- [Data Governance with Unity Catalog](#data-governance-with-unity-catalog)
 
-## ⚙️ Step 1: Azure Resources Provisioning
+## Architecture Overview
 
-Provisioned the following cloud resources and configured IAM for secure access:
+This project implements a multi-layered data architecture (Bronze, Silver, Gold) to progressively refine data from its raw state to a high-quality, analysis-ready format.
 
-- Azure Data Factory
-- Azure Storage Account with hierarchical namespace (Data Lake)
-- Azure Databricks workspace and cluster
-- Azure Synapse SQL Serverless
-- Power BI Service
+1.  **Data Ingestion**: Raw data lands in a source container in Azure Data Lake Storage (ADLS) Gen2.
+2.  **Bronze Layer**: Raw data is ingested into the Bronze layer as Delta tables without any transformation. This provides a historical archive of the source data.
+3.  **Silver Layer**: The data from the Bronze layer is cleaned, conformed, and enriched. Common data quality issues are resolved, and the data is structured for easier querying.
+4.  **Gold Layer**: Silver-layer data is aggregated and transformed into business-centric models, often as star schemas with fact and dimension tables, ready for BI and analytics.
+5.  **Orchestration**: The entire ETL/ELT process is orchestrated using Azure Databricks Jobs, ensuring a reliable and automated workflow.
 
-![Azure Resources](images/step1-resources.png)
+## Azure Resources
 
----
+The following Azure resources were provisioned within the `RG_Databricks_ETE` resource group to build the solution:
 
-## 🚀 Step 2: Data Ingestion via ADF
+*   **Azure Databricks Service (`databrickssete`)**: The core engine for data processing and transformation.
+*   **Azure Storage Account (`databricksabbharath`)**: Serves as the Azure Data Lake Storage Gen2 for storing all layers of data (Bronze, Silver, and Gold).
+*   **Access Connector for Azure Databricks (`databricks_ete_connector`)**: Enables secure access between Azure Databricks and the storage account.
 
-Using **HTTP connector**, ADF pipelines fetch AdventureWorks data from GitHub and drop into the `bronze` container.
 
-- Dynamic parameters and datasets
-- Logging and error handling enabled
 
-![ADF Ingestion](images/step2-adf-pipeline.png)
+## Data Pipeline Implementation
 
----
+### 1. Storage and Data Lake Setup
 
-## 🔄 Step 3: Transformation Using Databricks
+An Azure Storage Account was configured with a hierarchical namespace to function as a Data Lake. Containers were created to logically separate the data according to the Medallion architecture:
 
-Azure Databricks processes data from bronze to silver with transformations:
+*   **`source`**: Landing zone for raw source files.
+*   **`bronze`**: Stores raw data ingested from the source as Delta tables.
+*   **`silver`**: Stores cleaned and transformed data.
+*   **`gold`**: Stores curated, business-level aggregated data for analytics.
+*   **`metastore`**: Used by Databricks for managing the Hive Metastore or Unity Catalog metadata.
 
-- Cleaned missing values
-- Date normalization
-- Grouping, joins, and aggregations
-- Output saved in **Parquet** format
 
-![Databricks Notebook](images/step3-databricks1.png)
-![Databricks Output](images/step3-databricks2.png)
 
----
+### 2. Bronze Layer: Raw Data Ingestion
 
-## 🧠 Step 4: Data Modeling in Synapse Analytics
+Data from the `source` container is ingested into the `bronze` layer. This layer holds the raw, untouched data as well as checkpoints for streaming ingestion.
 
-- Connected Synapse to **Silver** data
-- Created external tables and views
-- Designed schema for analytical consumption
 
-![Synapse Tables](images/step4-synapse-tables.png)
-![Synapse Queries](images/step4-synapse-query.png)
 
----
+### 3. Silver Layer: Data Cleansing and Transformation
 
-## 📊 Step 5: BI Integration with Power BI
+In this stage, pipelines run transformations on the Bronze data. This includes data type casting, handling null values, and applying basic business rules. The cleaned data is then stored in the `silver` container.
 
-Power BI connected to Synapse SQL and visualized key metrics:
 
-- Sales performance by region & product
-- Year-over-year growth
-- Category and subcategory analysis
 
-![Power BI Report 1](images/step5-powerbi1.png)
-![Power BI Report 2](images/step5-powerbi2.png)
-![Power BI Report 3](images/step5-powerbi3.png)
+### 4. Gold Layer: Business-Ready Data
 
----
+The final layer aggregates the Silver data into consumption-ready tables, such as dimension (`DimCustomers`) and fact (`FactOrders`) tables. These tables are optimized for BI dashboards and analytical queries.
 
-## ✅ Outcome & Learnings
 
-| Key Benefit       | Description                                        |
-|-------------------|----------------------------------------------------|
-| 🚀 Automation     | Full ETL flow without manual steps                 |
-| 🧱 Modular Design | Bronze → Silver → Gold architecture                |
-| 🔍 BI Ready       | Power BI dashboards refresh automatically          |
-| 💡 Scalable       | All services scale on-demand for future growth     |
 
----
+## Pipeline Orchestration
 
-## 📁 Folder Structure
+The entire data flow is managed by a master `Parent_Pipeline` in Azure Databricks Jobs. This job orchestrates the execution of individual tasks in the correct order of dependency, from data ingestion to the final creation of the gold fact table.
 
-```bash
-azure-adventureworks-pipeline/
-├── adf/
-│   └── pipeline.json
-├── databricks/
-│   └── notebooks.ipynb
-├── synapse/
-│   └── external_tables.sql
-├── powerbi/
-│   └── dashboards.pbix
-├── images/
-│   └── (11 images referenced above)
-└── README.md
-```
+The Directed Acyclic Graph (DAG) shows the workflow:
+*   The `Bronze_Autoloader_Iteration` task ingests new raw data.
+*   Silver-layer jobs (`Silver_Customers`, `Silver_Orders`, `Silver_Products`) run in parallel to process the corresponding bronze tables.
+*   Gold-layer jobs (`Gold_Customers`, `Gold_Products`) create the dimension tables.
+*   Finally, the `Fact_Table` job runs to create the aggregated fact table from the gold dimensions.
 
----
 
-## 🙌 Acknowledgment
 
-This project is inspired by the Azure Data Engineering approach presented by **Sivaprasad V**. 
+A specific task like `GOLD_Products` is implemented as a Delta Live Tables (DLT) pipeline, which simplifies ETL development with declarative execution and deep visibility into pipeline operations.
 
----
 
-## ✉️ Contact
 
-- 📧 your.email@example.com
-- 🔗 [LinkedIn](https://linkedin.com/in/your-profile)
+## Data Governance with Unity Catalog
+
+Unity Catalog is used to provide a unified governance solution for all data and AI assets. It allows us to manage schemas and tables across all three layers (Bronze, Silver, Gold) from a central interface, ensuring fine-grained access control and providing a clear data lineage.
