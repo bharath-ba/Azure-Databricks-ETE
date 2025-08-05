@@ -1,7 +1,3 @@
-Of course! Here is a `README.md` file created based on the images you provided, following a structure similar to the example.
-
----
-
 # End-to-End Data Engineering Project on Azure
 
 This repository documents an end-to-end data engineering pipeline built on the Azure cloud platform. The project demonstrates a modern data warehousing solution using Azure Databricks and Azure Data Lake Storage Gen2 to process, transform, and serve data for analytics, following the Medallion architecture.
@@ -34,7 +30,7 @@ The following Azure resources were provisioned within the `RG_Databricks_ETE` re
 *   **Azure Databricks Service (`databrickssete`)**: The core engine for data processing and transformation.
 *   **Azure Storage Account (`databricksabbharath`)**: Serves as the Azure Data Lake Storage Gen2 for storing all layers of data (Bronze, Silver, and Gold).
 *   **Access Connector for Azure Databricks (`databricks_ete_connector`)**: Enables secure access between Azure Databricks and the storage account.
-
+![RG](images/ResourceGroup.png)
 
 
 ## Data Pipeline Implementation
@@ -78,7 +74,7 @@ The Directed Acyclic Graph (DAG) shows the workflow:
 *   Silver-layer jobs (`Silver_Customers`, `Silver_Orders`, `Silver_Products`) run in parallel to process the corresponding bronze tables.
 *   Gold-layer jobs (`Gold_Customers`, `Gold_Products`) create the dimension tables.
 *   Finally, the `Fact_Table` job runs to create the aggregated fact table from the gold dimensions.
-
+![Databricks Output](images/pipeline.png)
 
 
 A specific task like `GOLD_Products` is implemented as a Delta Live Tables (DLT) pipeline, which simplifies ETL development with declarative execution and deep visibility into pipeline operations.
